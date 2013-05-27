@@ -26,9 +26,8 @@ versions is unknown; `from __future__ import with_statement` might do the job.
 
 ### Dependencies
 
- - tornado
- - requests
- - six
+ - Python packages: tornado, requests, six
+ - Programs in your PATH: rtmpdump, mplayer
 
 ### Caveats
 
