@@ -131,7 +131,7 @@ class RdioWebClient(object):
             if message is None:
                 # Socket closed; set up pubsub again. Probably racy (we might
                 # try to pub while there's no websocket there).
-                yield self.setup_pubsub()
+                yield self.setup_pubsub(on_message)
                 return
             on_message(message)
 
