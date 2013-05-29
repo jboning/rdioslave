@@ -190,6 +190,9 @@ class Player(object):
 
     @gen.coroutine
     def play_source(self, command):
+        if not self.is_active:
+            self.is_active = True
+            self.publish_master_state()
         key = command["key"]
         objs_by_key = yield self.client.get([key], ["tracks"])
         source = objs_by_key[key]
