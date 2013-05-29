@@ -219,6 +219,8 @@ class Player(object):
         print("state before:")
         d(self.player_state)
         source = self.player_state['currentSource']
+        if source is None:
+            return
         if source['type'] in ALBUMISH_TYPES:
             source['currentPosition'] += 1
             if source['currentPosition'] >= source['tracks']['total']:
@@ -260,6 +262,8 @@ class Player(object):
     @gen.coroutine
     def previous_track(self):
         source = self.player_state['currentSource']
+        if source is None:
+            return
         if source['type'] in (ALBUMISH_TYPES | STATION_TYPES):
             if source['currentPosition'] == 0:
                 # TODO: maybe we could be clever about history here
