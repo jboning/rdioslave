@@ -15,12 +15,15 @@ STATION_TYPES = frozenset(("lr", "rr", "h", "e", "tr", "c"))
 
 
 class Player(object):
-    def __init__(self, api_client):
+    def __init__(self, api_client, use_stream_player="external"):
         self.client = api_client
 
-        # TODO: control with an option
-        self.stream_player = StreamPlayer(self.on_stream_ended)
-        #self.stream_player = MockStreamPlayer() 
+        if use_stream_player == "external":
+            self.stream_player = StreamPlayer(self.on_stream_ended)
+        elif use_stream_player == "mock":
+            self.stream_player = MockStreamPlayer()
+        else:
+            assert False
 
         self.queue = None
         self.player_state = None
