@@ -4,9 +4,15 @@ An interfaceless Rdio client for use with Remote Control Mode.
 
 ---
 
+Installation:
+
+    $ git clone https://github.com/jboning/rdioslave
+    $ virtualenv env
+    $ env/bin/pip install ./rdioslave
+
 Usage:
 
-    $ python -m rdioslave
+    $ env/bin/rdioslave
 
 You will be prompted for your username and password the first time you run
 rdioslave; it will write your session to `rdio_session.json` in your current
