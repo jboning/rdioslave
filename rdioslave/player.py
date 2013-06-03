@@ -65,6 +65,8 @@ class Player(object):
                     add_future(self.previous_track())
                 elif command["type"] == "playSource":
                     add_future(self.play_source(command))
+                elif command["type"] == "playQueuedSource":
+                    add_future(self.play_queued_source(command))
                 elif command["type"] == "queueSource":
                     add_future(self.queue_source(command))
                 elif command["type"] == "set":
@@ -227,6 +229,13 @@ class Player(object):
             d(source)
             assert False, "unhandled object type %s (above)" % source['type']
         yield self.play_current_track()
+
+    @gen.coroutine
+    def play_queued_source(self, command):
+        source = self.queue.pop(command.pop("queueIndex"))
+        command["index"] = command.pop("sourceIndex")
+        command["key"] = source["key"]
+        yield self.play_source(command) # XXX gross
 
     @gen.coroutine
     def queue_source(self, command):
