@@ -10,7 +10,7 @@ from .stream_player import MockStreamPlayer, StreamPlayer
 from .util import add_future, d
 
 
-ALBUMISH_TYPES = frozenset(("a", "p"))
+ALBUMISH_TYPES = frozenset(("a", "al", "p"))
 STATION_TYPES = frozenset(("lr", "rr", "h", "e", "tr", "c"))
 
 
