@@ -197,12 +197,29 @@ class Player(object):
             self.is_active = True
             self.publish_master_state()
         key = command["key"]
-        objs_by_key = yield self.client.get([key], ["tracks"])
-        source = objs_by_key[key]
+
+        # If we already have the source, don't fetch it from the server. This
+        # is not just an optimization, but for stations, actually necessary to
+        # avoid losing the currently shown list of tracks.
+        if (self.player_state['currentSource'] and
+                self.player_state['currentSource']['key'] == key):
+            source = self.player_state['currentSource']
+        elif (self.player_state['station'] and
+                self.player_state['station']['key'] == key):
+            source = copy.deepcopy(self.player_state['station'])
+        else:
+            objs_by_key = yield self.client.get([key], ["tracks"])
+            source = objs_by_key[key]
         d(source)
+
         if source['type'] in ALBUMISH_TYPES:
-            index = command.get("index", 0)
+            index = command.get('index', 0)
             source['currentPosition'] = index
+            self.player_state['currentSource'] = source
+        elif source['type'] in STATION_TYPES:
+            index = command.get('index') or source.get('currentPosition') or 0
+            source['currentPosition'] = index
+            self.player_state['station']['currentPosition'] = index
             self.player_state['currentSource'] = source
         elif source['type'] == "t":
             self.player_state['currentSource'] = source
@@ -241,7 +258,8 @@ class Player(object):
                 elif self.player_state['station']:
                     # switch to the station
                     self.player_state['currentSource'] = copy.deepcopy(self.player_state['station'])
-                    self.player_state['currentSource']['currentPosition'] = 0
+                    if 'currentPosition' not in self.player_state['currentSource']:
+                        self.player_state['currentSource']['currentPosition'] = 0
                 else:
                     # Out of things to play. Stop.
                     self.stop_player()
@@ -252,6 +270,7 @@ class Player(object):
             station = self.player_state['station']
             if source['currentPosition'] < 2:
                 source['currentPosition'] += 1
+                station['currentPosition'] = source['currentPosition']
             else:
                 exclude = [track['key'] for track in source['tracks']['items']]
                 result = yield self.client.generate_station(source['key'], exclude)
