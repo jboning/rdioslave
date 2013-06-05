@@ -233,7 +233,8 @@ class Player(object):
     @gen.coroutine
     def play_queued_source(self, command):
         source = self.queue.pop(command.pop("queueIndex"))
-        command["index"] = command.pop("sourceIndex")
+        if "sourceIndex" in command:
+            command["index"] = command.pop("sourceIndex")
         command["key"] = source["key"]
         yield self.play_source(command) # XXX gross
 
