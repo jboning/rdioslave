@@ -138,7 +138,8 @@ class Player(object):
 
         add_future(self.save_state())
         playback_info = yield self.client.get_playback_info(track_key)
-        self.stream_player.play_stream(playback_info['surl'])
+        d(playback_info)
+        self.stream_player.play_stream(playback_info)
 
     @gen.coroutine
     def get_state(self):

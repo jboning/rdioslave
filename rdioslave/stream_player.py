@@ -19,12 +19,11 @@ class StreamPlayer(object):
         self.play_p = None
         self.on_stream_ended = on_stream_ended
 
-    def play_stream(self, surl):
+    def play_stream(self, info):
         self.kill_stream()
         download_cmd = ["rtmpdump",
-                        "-a", "8025AC/media.rd.io",
-                        "-r", "rtmpe://fms.25AC.edgecastcdn.net:1935/8025AC/media.rd.io", 
-                        "-y", "mp3:" + surl,
+                        "-r", "rtmpe://%s%s" % (info['streamHost'], info['streamApp']),
+                        "-y", "mp3:" + info['surl'],
                         "-o", "-",
                        ]
         play_cmd = ["mplayer", "-cache", "2048", "-quiet", "-"]
