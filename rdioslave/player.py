@@ -246,6 +246,28 @@ class Player(object):
         yield self.save_state()
 
     @gen.coroutine
+    def next_source(self):
+        if self.queue:
+            # TODO: eliminate this latency by preloading sources in queue
+            key = self.queue.pop(0)["key"]
+            result = yield self.client.get([key], ["tracks"])
+            source = result[key]
+            self.player_state['currentSource'] = source
+            if source['type'] in (ALBUMISH_TYPES | STATION_TYPES):
+                self.player_state['currentSource']['currentPosition'] = 0
+        elif self.player_state['station']:
+            # switch to the station
+            self.player_state['currentSource'] = copy.deepcopy(self.player_state['station'])
+            if 'currentPosition' not in self.player_state['currentSource']:
+                self.player_state['currentSource']['currentPosition'] = 0
+        else:
+            # Out of things to play. Stop.
+            self.stop_player()
+            self.player_state['currentSource'] = None
+            yield self.save_state()
+            return
+
+    @gen.coroutine
     def next_track(self):
         print()
         print("CHANGING TRACKS: NEXT")
@@ -258,25 +280,9 @@ class Player(object):
         if source['type'] in ALBUMISH_TYPES:
             source['currentPosition'] += 1
             if source['currentPosition'] >= source['tracks']['total']:
-                if self.queue:
-                    # TODO: eliminate this latency by preloading sources in queue
-                    key = self.queue.pop(0)["key"]
-                    result = yield self.client.get([key], ["tracks"])
-                    source = result[key]
-                    self.player_state['currentSource'] = source
-                    if source['type'] in (ALBUMISH_TYPES | STATION_TYPES):
-                        self.player_state['currentSource']['currentPosition'] = 0
-                elif self.player_state['station']:
-                    # switch to the station
-                    self.player_state['currentSource'] = copy.deepcopy(self.player_state['station'])
-                    if 'currentPosition' not in self.player_state['currentSource']:
-                        self.player_state['currentSource']['currentPosition'] = 0
-                else:
-                    # Out of things to play. Stop.
-                    self.stop_player()
-                    self.player_state['currentSource'] = None
-                    yield self.save_state()
-                    return
+                yield self.next_source()
+        elif source['type'] == "t":
+            yield self.next_source()
         elif source['type'] in STATION_TYPES:
             station = self.player_state['station']
             if source['currentPosition'] < 2:
