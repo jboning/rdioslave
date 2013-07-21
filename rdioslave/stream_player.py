@@ -23,6 +23,7 @@ class StreamPlayer(object):
         self.kill_stream()
         download_cmd = ["rtmpdump",
                         "-r", "rtmpe://%s%s" % (info['streamHost'], info['streamApp']),
+                        "-a", info['streamApp'][1:],
                         "-y", "mp3:" + info['surl'],
                         "-o", "-",
                        ]
