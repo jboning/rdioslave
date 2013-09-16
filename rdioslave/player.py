@@ -11,7 +11,7 @@ from .util import add_future, d
 
 
 ALBUMISH_TYPES = frozenset(("a", "al", "p"))
-STATION_TYPES = frozenset(("lr", "rr", "h", "e", "tr", "c"))
+STATION_TYPES = frozenset(("lr", "rr", "h", "e", "tr", "c", "tp"))
 
 
 class Player(object):
@@ -70,11 +70,14 @@ class Player(object):
                 elif command["type"] == "queueSource":
                     add_future(self.queue_source(command))
                 elif command["type"] == "set":
-                    key = command["key"] # station
+                    key = command["key"]
                     value = command["value"]
                     if key == "sourcePosition":
                         self.player_state['currentSource']['currentPosition'] = value
                         add_future(self.play_current_track())
+                    elif key == "station":
+                        sys.stdout.flush()
+                        add_future(self.set_station(value))
                 else:
                     assert False, "unrecognized remote command: %s" % json.dumps(command, indent=4)
             elif (user_channel, event) == ("player", "masterQuery"):
@@ -96,7 +99,6 @@ class Player(object):
             self.client.sub("player")
 
             if not self.is_master:
-                self.is_active = True
                 self.publish_master_state() # claim control of the world
                 self.is_master = True
                 add_future(self.play_current_track())
@@ -136,6 +138,7 @@ class Player(object):
         else:
             assert False, "not implemented!"
 
+        self.is_active = True
         add_future(self.save_state())
         playback_info = yield self.client.get_playback_info(track_key)
         d(playback_info)
@@ -195,6 +198,13 @@ class Player(object):
         self.stream_player.kill_stream()
 
     @gen.coroutine
+    def set_station(self, station_key):
+        if self.is_active:
+            self.player_state['station'] = yield self.client.get([station_key], ["tracks"])
+        else:
+            yield self.play_source({'key': station_key})
+
+    @gen.coroutine
     def play_source(self, command):
         if not self.is_active:
             self.is_active = True
@@ -222,6 +232,7 @@ class Player(object):
         elif source['type'] in STATION_TYPES:
             index = command.get('index') or source.get('currentPosition') or 0
             source['currentPosition'] = index
+            self.player_state['station'] = source
             self.player_state['station']['currentPosition'] = index
             self.player_state['currentSource'] = source
         elif source['type'] == "t":
