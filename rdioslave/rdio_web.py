@@ -248,6 +248,12 @@ class RdioWebClient(object):
         ret = yield self.call_api("savePlayerState", params)
         raise gen.Return(ret)
 
+    @gen.coroutine
+    def add_start_event(self, source, key):
+        params = dict(source=source, key=key)
+        ret = yield self.call_api("addStartEvent", params)
+        raise gen.Return(ret)
+
     def sign_in_sync(self, username, password, remember=1, next_url=""):
         params = {
             'username': username,

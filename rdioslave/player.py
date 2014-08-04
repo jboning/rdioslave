@@ -140,6 +140,7 @@ class Player(object):
 
         self.is_active = True
         add_future(self.save_state())
+        add_future(self.client.add_start_event(source['key'], track_key))
         playback_info = yield self.client.get_playback_info(track_key)
         d(playback_info)
         self.stream_player.play_stream(playback_info)
