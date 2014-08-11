@@ -291,7 +291,7 @@ class Player(object):
             return
         if source['type'] in ALBUMISH_TYPES:
             source['currentPosition'] += 1
-            if source['currentPosition'] >= source['tracks']['total']:
+            if source['currentPosition'] >= len(source['tracks']['items']):
                 yield self.next_source()
         elif source['type'] == "t":
             yield self.next_source()
